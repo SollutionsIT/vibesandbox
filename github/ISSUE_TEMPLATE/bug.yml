@@ -1,0 +1,19 @@
+name: Bug report
+description: Report a reproducible, non-sensitive defect.
+body:
+  - type: markdown
+    attributes:
+      value: For vulnerabilities use SECURITY.md; do not paste private source or credentials.
+  - type: textarea
+    id: environment
+    attributes:
+      label: Version and environment
+      description: OS, Python, Docker engine and VibeSandbox version.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Safe reproduction and expected/actual behavior
+    validations:
+      required: true

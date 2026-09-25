@@ -1,0 +1,33 @@
+name: Quality and execution
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        python: ['3.12', '3.14']
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: '0.12.19'
+      - run: uv sync --frozen --python '${{ matrix.python }}'
+      - run: make lint typecheck test build
+      - run: docker info
+      - run: make images test-integration demo
+      - name: Assert no sandbox containers remain
+        if: always()
+        run: test -z "$(docker ps -aq --filter label=io.sollutions.vibesandbox=true)"

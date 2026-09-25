@@ -1,0 +1,45 @@
+name: Security
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '23 6 * * 1'
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TRIVY: aquasec/trivy@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: '0.12.19'
+          python-version: '3.12'
+      - run: make setup security images
+      - name: Repository secret scan
+        run: docker run --rm -v "$PWD:/repo:ro" "$TRIVY" fs --scanners secret --skip-dirs /repo/.venv --skip-dirs /repo/.git --exit-code 1 /repo
+      - name: Runtime vulnerability scans
+        run: |
+          for image in vibesandbox-python:0.1.0 vibesandbox-node:0.1.0; do
+            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock:ro "$TRIVY" image --scanners vuln --severity HIGH,CRITICAL --exit-code 1 "$image"
+          done
+  codeql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: github/codeql-action/init@7999b86c43a865dc79d8923397f35af22de63401 # v4
+        with:
+          languages: python
+          build-mode: none
+      - uses: github/codeql-action/analyze@7999b86c43a865dc79d8923397f35af22de63401 # v4

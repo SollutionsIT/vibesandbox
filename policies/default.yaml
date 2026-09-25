@@ -1,0 +1,7 @@
+timeout: 5.0
+memory_mb: 128
+cpus: 0.5
+pids: 32
+tmpfs_mb: 16
+output_bytes: 65536
+source_bytes: 1048576

@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vibesandbox"
+version = "0.1.0"
+description = "Policy-enforced local execution of untrusted code in disposable Docker containers"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+dependencies = ["docker>=7.1,<8", "pydantic>=2.10,<3", "typer>=0.16,<1", "rich>=14,<15", "PyYAML>=6.0.2,<7"]
+
+[project.scripts]
+vibesandbox = "vibesandbox.cli:app"
+
+[dependency-groups]
+dev = ["pytest>=8.3,<10", "pytest-cov>=6,<8", "ruff>=0.12,<1", "mypy>=1.15,<2", "types-PyYAML", "types-docker", "build>=1.2,<2", "pip-audit>=2.9,<3"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+[tool.mypy]
+python_version = "3.12"
+strict = true
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["integration: requires local Docker and built execution images"]
